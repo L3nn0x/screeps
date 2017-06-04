@@ -1,37 +1,11 @@
-var roles = {
-  HARVESTER: 'harvester',
-}
+constants = require("constants");
 
-var bodyParts = {
-  MOVE: {
-    cost: 50,
-    fatigue: -2
-  },
-  WORK: {
-    cost: 100,
-    harvest: {
-      energy: 2,
-      mineral: 1
-    },
-    build: {
-      gain: 5,
-      cost: 5
-    },
-    upgrade: 1
-  },
-  CARRY: {
-    cost: 50,
-    carry: 50,
-  }
-}
-
-var _roles = {
-  roles.HARVESTER: require("role.harvester")
-};
+var _roles = {};
+_roles[constants.roles.HARVESTER] = require("role.harvester");
 
 module.exports = {
   build: function(role, energy) {
-    var StateMachine = require("StateMachine");
+    var StateMachine = require("state-machine");
     var fsm = StateMachine.create({
       initial: 'idle',
       events: [
@@ -41,7 +15,9 @@ module.exports = {
       ],
       callbacks: {
         onidle: function(event, from, to, creep) {
-          console.log("onidle " + screep.name);
+          if (creep == null)
+            return;
+          console.log("onidle " + creep.name);
           creep.memory.roles['idle'](creep);
         },
         onmoving: function(event, from, to, creep) {
@@ -54,15 +30,15 @@ module.exports = {
         }
       }
     });
-    return {body: roles[role].getBody(energy),
+    return {body: _roles[role].getBody(energy),
             memory: {
-              fsm: fsm;
-              roles: roles[role].getRoles();
-              role: role;
+              fsm: fsm,
+              roles: _roles[role].getRoles(),
+              role: role,
             }
           };
     },
   run: function(creep) {
     _roles[creep.memory.role].run(creep);
   }
-}
+};
